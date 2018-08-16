@@ -6,7 +6,7 @@ import './App.css';
 import Web3 = require('web3');
 
 const CONTRACT_ABI = require('./abi.json');
-const CONTRACT_ADDRESS = '0x30fad401201e2ddfaea333fd9459d1dcc49ba8fd';
+const CONTRACT_ADDRESS = '0x2dcb029a9428f8fc8db369e09056a119f1bc1213';
 
 const web3js = new Web3(Web3.givenProvider || new Web3.providers.HttpProvider('https://ropsten.infura.io:443'));
 const contract = new web3js.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
@@ -21,6 +21,7 @@ interface AppState {
     message: string,
     owner: string,
   }[],
+  nextMessageIndex: number,
 }
 
 class App extends React.Component<{}, AppState> {
@@ -30,10 +31,11 @@ class App extends React.Component<{}, AppState> {
     balance: 0,
     newMessageValue: '',
     messages: [],
+    nextMessageIndex: -1, // Next message to retrieve (we start from biggest).
   };
 
   public componentDidMount() {
-    this.refreshMessages();
+    this.fetchMoreMessages();
 
     if (typeof web3 !== 'undefined') {
       this.refreshAccounts();    
@@ -58,14 +60,16 @@ class App extends React.Component<{}, AppState> {
     })
   }
 
-  public async refreshMessages() {
-    // We don't have messages length in our contract. We forgot!
-    // #TODO fix later
-    const messages = [
-      await contract.methods.messages(0).call(),
-      await contract.methods.messages(1).call(),
-    ];
-    this.setState({ messages });
+  fetchMoreMessages = async () => {
+    let startIndex = this.state.nextMessageIndex;
+    if (startIndex === -1) {
+      startIndex = await contract.methods.messagesCount().call();
+    }
+
+    for (let i = startIndex - 1; i >= Math.max(startIndex - 10, 0); i -= 1) {
+      const message = await contract.methods.messages(i).call();
+      this.setState({ messages: this.state.messages.concat(message) });
+    }
   }
 
   postMessage = async (e: any) => {
@@ -77,7 +81,14 @@ class App extends React.Component<{}, AppState> {
 
     contract.methods.postMessage(this.state.newMessageValue).send({
       from: this.state.account,
-    });
+    }).on('transactionHash', (hash) => {
+        console.info(`Transaction hash: ${hash}`);
+    }).on('receipt', function(receipt){
+        console.info('Receipt:');
+        console.info(receipt);
+    }).on('confirmation', function(confirmationNumber, receipt){
+        console.info(`Confirmation ${confirmationNumber}`);
+    }).on('error', console.error);
   }
 
   public render() {
@@ -96,6 +107,8 @@ class App extends React.Component<{}, AppState> {
           <button type="submit" disabled={this.state.newMessageValue === ''}>Post</button>
         </form>
         <h1>Messages</h1>
+        <i>Messages take an avg. of 15 seconds to be stored on the blockchain. This page will update automatically.</i>
+        <hr/>
         {this.state.messages.map((message, i) => (
           <div key={i}>
             <div>Owner: {message.owner}</div>
@@ -104,6 +117,7 @@ class App extends React.Component<{}, AppState> {
             <hr/>
           </div>
         ))}
+        <div><button onClick={this.fetchMoreMessages}>Fetch more</button></div>
       </div>
     );
   }
