@@ -111,6 +111,7 @@ class App extends React.Component<{}, AppState> {
   public render() {
     return (
       <div className="App">
+        Ropsten Test Network
         <h1>Accounts</h1>
         {this.state.accounts.length === 0 && 'No Ethereum accounts found.'}
         <ul>
