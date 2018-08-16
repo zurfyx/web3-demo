@@ -66,8 +66,10 @@ class App extends React.Component<{}, AppState> {
     if (startIndex === -1) {
       startIndex = await contract.methods.messagesCount().call();
     }
+    const endIndex = Math.max(startIndex - 10, 0);
+    this.setState({ nextMessageIndex: endIndex });
 
-    for (let i = startIndex - 1; i >= Math.max(startIndex - 10, 0); i -= 1) {
+    for (let i = startIndex - 1; i >= endIndex; i -= 1) {
       const message = await contract.methods.messages(i).call();
       this.setState({ messages: this.state.messages.concat(message) });
     }
