@@ -1,6 +1,8 @@
 pragma solidity ^0.4.0;
 
 contract SimpleChat {
+    event NewMessage(uint id);
+
     struct Message {
         address owner;
         string message;
@@ -15,7 +17,8 @@ contract SimpleChat {
             message: _message,
             created: now
         });
-        messages.push(newMessage);
+        uint id = messages.push(newMessage);
         messagesCount++;
+        emit NewMessage(id);
     }
 }

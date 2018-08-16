@@ -6,9 +6,9 @@ import './App.css';
 import Web3 = require('web3');
 
 const CONTRACT_ABI = require('./abi.json');
-const CONTRACT_ADDRESS = '0x2dcb029a9428f8fc8db369e09056a119f1bc1213';
+const CONTRACT_ADDRESS = '0xeb3e614be9b9f1c9b6df57b1a727d2d3beec8c06';
 
-const web3js = new Web3(Web3.givenProvider || new Web3.providers.HttpProvider('https://ropsten.infura.io:443'));
+const web3js = new Web3(Web3.givenProvider || new Web3.providers.HttpProvider('https://ropsten.infura.io'));
 const contract = new web3js.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
 
 interface AppState {
@@ -36,6 +36,7 @@ class App extends React.Component<{}, AppState> {
 
   public componentDidMount() {
     this.fetchMoreMessages();
+    this.listenToNewMessages();
 
     if (typeof web3 !== 'undefined') {
       this.refreshAccounts();    
@@ -43,12 +44,12 @@ class App extends React.Component<{}, AppState> {
     }
   }
 
-  public async refreshAccounts() {
+  refreshAccounts = async () => {
     const accounts = await web3js.eth.getAccounts();
     this.setState({ accounts });
   }
 
-  public async refreshAccount() {
+  refreshAccount = async () => {
     const accounts = await web3js.eth.getAccounts();
     if (accounts.length === 0) {
       return;
@@ -72,10 +73,22 @@ class App extends React.Component<{}, AppState> {
     }
   }
 
+  listenToNewMessages = () => {
+    contract.events.NewMessage({}, console.info).on('data', async (event: any) => {
+      const messageIndex = event.returnValues.id;
+      const message = await contract.methods.messages(messageIndex).call();
+      this.setState({ messages: this.state.messages.concat(message) });
+    })
+  }
+
   postMessage = async (e: any) => {
     e.preventDefault();
     if (typeof web3 === 'undefined') {
       alert('No Mist/MetaMask installed');
+      return;
+    }
+    if (!this.state.account) {
+      alert('Can\'t find account. Are you signed in?');
       return;
     }
 
@@ -89,6 +102,8 @@ class App extends React.Component<{}, AppState> {
     }).on('confirmation', function(confirmationNumber, receipt){
         console.info(`Confirmation ${confirmationNumber}`);
     }).on('error', console.error);
+
+    this.setState({ newMessageValue: '' });
   }
 
   public render() {
@@ -103,13 +118,13 @@ class App extends React.Component<{}, AppState> {
         Balance: {this.state.balance}
         <h1>Post message</h1>
         <form onSubmit={this.postMessage}>
-          <textarea onChange={e => this.setState({ newMessageValue: e.target.value })}></textarea>
+          <textarea value={this.state.newMessageValue} onChange={e => this.setState({ newMessageValue: e.target.value })}></textarea>
           <button type="submit" disabled={this.state.newMessageValue === ''}>Post</button>
         </form>
         <h1>Messages</h1>
         <i>Messages take an avg. of 15 seconds to be stored on the blockchain. This page will update automatically.</i>
         <hr/>
-        {this.state.messages.map((message, i) => (
+        {this.state.messages.sort(message => -Number(message.created)).map((message, i) => (
           <div key={i}>
             <div>Owner: {message.owner}</div>
             <div>Created: {new Date(Number(message.created) * 1000).toString()}</div>

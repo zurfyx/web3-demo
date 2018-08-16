@@ -1,19 +1,5 @@
 [
 	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_message",
-				"type": "string"
-			}
-		],
-		"name": "postMessage",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"constant": true,
 		"inputs": [
 			{
@@ -41,6 +27,20 @@
 		"type": "function"
 	},
 	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_message",
+				"type": "string"
+			}
+		],
+		"name": "postMessage",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"constant": true,
 		"inputs": [],
 		"name": "messagesCount",
@@ -53,5 +53,17 @@
 		"payable": false,
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"name": "NewMessage",
+		"type": "event"
 	}
 ]
