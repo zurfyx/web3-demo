@@ -1,19 +1,44 @@
+/* tslint:disable */
+
 import * as React from 'react';
 import './App.css';
 
-import logo from './logo.svg';
+import Web3 = require('web3');
 
-class App extends React.Component {
+const web3js = new Web3(Web3.givenProvider);
+
+interface AppState {
+  accounts: string[],
+}
+
+class App extends React.Component<{}, AppState> {
+  public state: AppState = {
+    accounts: [],
+  };
+
+  public componentDidMount() {
+    if (typeof web3 === 'undefined') {
+      alert('No Mist/MetaMask installed');
+      return;
+    }
+    this.refreshAccounts();    
+  }
+
+  public async refreshAccounts() {
+    const accounts = await web3js.eth.getAccounts();
+    console.info(accounts);
+    this.setState({ accounts });
+  }
+
   public render() {
+    console.info(this.state);
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.tsx</code> and save to reload.
-        </p>
+        <h1>Accounts</h1>
+        {this.state.accounts.length === 0 && 'No Ethereum accounts found.'}
+        <ul>
+          {this.state.accounts.map(address => <li>{address}</li>)}
+        </ul>
       </div>
     );
   }
