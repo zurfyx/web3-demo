@@ -2,6 +2,7 @@
   "name": "ethereum-simplechat",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://zurfyx.github.io/web3-demo",
   "dependencies": {
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
@@ -13,7 +14,9 @@
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
-    "eject": "react-scripts-ts eject"
+    "eject": "react-scripts-ts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
@@ -21,6 +24,7 @@
     "@types/react": "^16.4.11",
     "@types/react-dom": "^16.0.7",
     "@types/web3": "^1.0.3",
+    "gh-pages": "^1.2.0",
     "typescript": "^3.0.1"
   }
 }
